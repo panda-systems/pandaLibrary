@@ -1,6 +1,6 @@
 Pod::Spec.new do |spec|
 spec.name         = 'PSRateManager'
-spec.version      = '1.0'
+spec.version      = '1.1'
 spec.license      = ''
 spec.summary      = ''
 spec.homepage     = 'https://github.com/panda-systems/pandaLibrary'
