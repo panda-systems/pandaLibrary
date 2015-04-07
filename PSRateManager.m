@@ -1,5 +1,5 @@
 //
-//  RateManager.m
+//  PSRateManager.m
 //  botmusic
 //
 //  Created by Panda Systems on 4/7/15.
@@ -10,7 +10,7 @@
 
 #import <MessageUI/MessageUI.h>
 
-#import "RateManager.h"
+#import "PSRateManager.h"
 
 //#import "TestFlight.h"
 
@@ -51,7 +51,7 @@ NSArrayObjectMaybeNil(__ARRAYNAME__, 8),\
 NSArrayObjectMaybeNil(__ARRAYNAME__, 9),\
 nil
 
-@interface RateManager() <NSURLConnectionDelegate,UIActionSheetDelegate,UIAlertViewDelegate>
+@interface PSRateManager() <NSURLConnectionDelegate,UIActionSheetDelegate,UIAlertViewDelegate>
 
 
 @property (nonatomic)       int ratingValue;
@@ -59,11 +59,11 @@ nil
 
 @end
 
-@implementation RateManager
+@implementation PSRateManager
 
 + (instancetype)sharedInstance
 {
-    static RateManager *sharedInstance = nil;
+    static PSRateManager *sharedInstance = nil;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         sharedInstance = [[self alloc] init];
@@ -80,12 +80,12 @@ nil
     }
     return self;
 }
-- (void)promptForRatingIfPossibleWithMessage:(NSString*)message completion:(void (^)(RateCompletionType willShow))rateCompletion view:(UIView*)view{
+- (void)promptForRatingIfPossibleWithMessage:(NSString*)message completion:(void (^)(PSRateCompletionType willShow))rateCompletion view:(UIView*)view{
     
     [self promptForRatingIfPossibleWithMessage:message forcePromt:NO completion:rateCompletion view:view];
 }
 
-- (void)promptForRatingIfPossibleWithMessage:(NSString*)message forcePromt:(BOOL)forcePromt completion:(void (^)(RateCompletionType willShow))rateCompletion view:(UIView*)view
+- (void)promptForRatingIfPossibleWithMessage:(NSString*)message forcePromt:(BOOL)forcePromt completion:(void (^)(PSRateCompletionType willShow))rateCompletion view:(UIView*)view
 {
     self.viewToShowPrompt = view;
     self.rateCompletion = rateCompletion;
@@ -93,7 +93,7 @@ nil
         if(![self checkRequirements]) {
             
             if(rateCompletion) {
-                rateCompletion(RateCompletionTypeNotRated);
+                rateCompletion(PSRateCompletionTypeNotRated);
             }
             return;
         }
@@ -125,7 +125,7 @@ nil
         } else {
             
             if(_rateCompletion) {
-                _rateCompletion(RateCompletionTypeNotRated);
+                _rateCompletion(PSRateCompletionTypeNotRated);
             }
         }
     }];
@@ -330,7 +330,7 @@ nil
     self.ratingValue = value;
     if(value >= 1) {
         if(_rateCompletion) {
-            _rateCompletion(RateCompletionTypeLiked);
+            _rateCompletion(PSRateCompletionTypeLiked);
         }
         
         UIAlertView *alertView=[[UIAlertView alloc]initWithTitle:@"" message:NSLocalizedString(@"Would you like to leave a review?", nil) delegate:self cancelButtonTitle:@"No" otherButtonTitles:@"Yes", nil];
@@ -340,7 +340,7 @@ nil
         
     } else {
         if(_rateCompletion) {
-            _rateCompletion(RateCompletionTypeDisliked);
+            _rateCompletion(PSRateCompletionTypeDisliked);
         }
     }
     

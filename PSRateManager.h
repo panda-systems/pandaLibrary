@@ -1,5 +1,5 @@
 //
-//  RateManager.h
+//  PSRateManager.h
 //  botmusic
 //
 //  Created by Panda Systems on 4/7/15.
@@ -8,14 +8,14 @@
 
 #import <Foundation/Foundation.h>
 
-typedef NS_ENUM(NSUInteger, RateCompletionType) {
-    RateCompletionTypeNotRated,
-    RateCompletionTypeLiked,
-    RateCompletionTypeDisliked,
+typedef NS_ENUM(NSUInteger, PSRateCompletionType) {
+    PSRateCompletionTypeNotRated,
+    PSRateCompletionTypeLiked,
+    PSRateCompletionTypeDisliked,
 };
-typedef void(^RateCompletion)(RateCompletionType);
+typedef void(^PSRateCompletion)(PSRateCompletionType);
 
-@interface RateManager : NSObject
+@interface PSRateManager : NSObject
 
 @property (copy, nonatomic) NSString *appStoreID;
 @property (copy, nonatomic) NSString *appName;
@@ -31,10 +31,10 @@ typedef void(^RateCompletion)(RateCompletionType);
 @property (nonatomic) NSNumber* lastPromptRunNumber;
 @property (nonatomic) NSNumber* promptsNumber;
 @property (nonatomic, assign) BOOL shouldReplaceEUtoUSA;
-@property (nonatomic, copy) RateCompletion rateCompletion;
+@property (nonatomic, copy) PSRateCompletion rateCompletion;
 + (instancetype)sharedInstance;
 
-- (void)promptForRatingIfPossibleWithMessage:(NSString*)message completion:(void (^)(RateCompletionType willShow))rateCompletion view:(UIView*)view;
-- (void)promptForRatingIfPossibleWithMessage:(NSString*)message forcePromt:(BOOL)forcePromt completion:(void (^)(RateCompletionType willShow))rateCompletion view:(UIView*)view;
+- (void)promptForRatingIfPossibleWithMessage:(NSString*)message completion:(void (^)(PSRateCompletionType willShow))rateCompletion view:(UIView*)view;
+- (void)promptForRatingIfPossibleWithMessage:(NSString*)message forcePromt:(BOOL)forcePromt completion:(void (^)(PSRateCompletionType willShow))rateCompletion view:(UIView*)view;
 
 @end
