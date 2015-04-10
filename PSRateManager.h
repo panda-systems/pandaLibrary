@@ -13,16 +13,13 @@ typedef NS_ENUM(NSUInteger, PSRateCompletionType) {
     PSRateCompletionTypeLiked,
     PSRateCompletionTypeDisliked,
 };
+
 typedef void(^PSRateCompletion)(PSRateCompletionType);
 
 @interface PSRateManager : NSObject
 
 @property (copy, nonatomic) NSString *appStoreID;
 @property (copy, nonatomic) NSString *appName;
-@property (weak, nonatomic) UIViewController *presentingViewController;
-
-//open AppStore rating page right after user set 4+ stars (without intermediate alert)
-@property (nonatomic) BOOL forceToAppStore;
 
 @property (nonatomic) BOOL ratedThisVersion;
 @property (nonatomic) BOOL declinedThisVersion;
@@ -32,9 +29,16 @@ typedef void(^PSRateCompletion)(PSRateCompletionType);
 @property (nonatomic) NSNumber* promptsNumber;
 @property (nonatomic, assign) BOOL shouldReplaceEUtoUSA;
 @property (nonatomic, copy) PSRateCompletion rateCompletion;
+
 + (instancetype)sharedInstance;
 
-- (void)promptForRatingIfPossibleWithMessage:(NSString*)message completion:(void (^)(PSRateCompletionType willShow))rateCompletion view:(UIView*)view;
-- (void)promptForRatingIfPossibleWithMessage:(NSString*)message forcePromt:(BOOL)forcePromt completion:(void (^)(PSRateCompletionType willShow))rateCompletion view:(UIView*)view;
+- (void)promptForRatingIfPossibleWithMessage:(NSString*)message
+                                  completion:(void (^)(PSRateCompletionType willShow))rateCompletion
+                                        view:(UIView*)view;
+
+- (void)promptForRatingIfPossibleWithMessage:(NSString*)message
+                                  forcePromt:(BOOL)forcePromt
+                                  completion:(void (^)(PSRateCompletionType willShow))rateCompletion
+                                        view:(UIView*)view;
 
 @end
