@@ -7,7 +7,9 @@
 //
 
 
+
 #import <MessageUI/MessageUI.h>
+
 #import "PSRateManager.h"
 
 static NSString * const RateManageriOSAppStoreURLFormat = @"itms-apps://itunes.apple.com/WebObjects/MZStore.woa/wa/viewContentsUserReviews?type=Purple+Software&id=%@";
@@ -28,15 +30,18 @@ static NSString * const RateManagerISODigitalCodeEU = @"150"; // http://stackove
 static NSString * const RateManagerISOAlpha2CodeEU = @"EU";
 static NSString * const RateManagerISOAlpha2CodeUSA = @"US";
 
-@interface PSRateManager() <NSURLConnectionDelegate, UIActionSheetDelegate, UIAlertViewDelegate>
 
-@property (nonatomic, strong)   UIView* viewToShowPrompt;
+@interface PSRateManager() <NSURLConnectionDelegate,UIActionSheetDelegate,UIAlertViewDelegate>
+
+
+@property (nonatomic, strong) UIView* viewToShowPrompt;
 
 @end
 
 @implementation PSRateManager
 
-+ (instancetype)sharedInstance {
++ (instancetype)sharedInstance
+{
     static PSRateManager *sharedInstance = nil;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
@@ -44,8 +49,7 @@ static NSString * const RateManagerISOAlpha2CodeUSA = @"US";
     });
     return sharedInstance;
 }
-
-- (id)init {
+- (id)init{
     self = [super init];
     self.numberOfRuns = @([self.numberOfRuns intValue] + 1);
     if (![self isOpenedBefore]){
@@ -55,24 +59,20 @@ static NSString * const RateManagerISOAlpha2CodeUSA = @"US";
     }
     return self;
 }
-
-- (void)promptForRatingIfPossibleWithMessage:(NSString*)message
-                                  completion:(void (^)(PSRateCompletionType willShow))rateCompletion
-                                        view:(UIView*)view {
+- (void)promptForRatingIfPossibleWithCompletion:(void (^)(PSRateCompletionType willShow))rateCompletion view:(UIView*)view{
     
-    [self promptForRatingIfPossibleWithMessage:message forcePromt:NO completion:rateCompletion view:view];
+    [self promptForRatingIfPossibleWithForcePromt:NO completion:rateCompletion view:view];
 }
 
-- (void)promptForRatingIfPossibleWithMessage:(NSString*)message forcePromt:(BOOL)forcePromt completion:(void (^)(PSRateCompletionType willShow))rateCompletion view:(UIView*)view
+- (void)promptForRatingIfPossibleWithForcePromt:(BOOL)forcePromt completion:(void (^)(PSRateCompletionType willShow))rateCompletion view:(UIView*)view
 {
     self.viewToShowPrompt = view;
     self.rateCompletion = rateCompletion;
-    
     if (!forcePromt) {
         if(![self checkRequirements]) {
             
             if(rateCompletion) {
-                rateCompletion(PSRateCompletionTypeNotRated);
+                rateCompletion(PSRateCompletionTypeNotProposed);
             }
             return;
         }
@@ -99,20 +99,19 @@ static NSString * const RateManagerISOAlpha2CodeUSA = @"US";
         if (statusCode == 200) {
             dispatch_async(dispatch_get_main_queue(), ^{
                 
-                [self promptInternalRatingWithMessage:message];
+                [self promptInternalRating];
             });
         } else {
             
             if(_rateCompletion) {
-                _rateCompletion(PSRateCompletionTypeNotRated);
+                _rateCompletion(PSRateCompletionTypeNotProposed);
             }
         }
     }];
 }
 
--(BOOL) checkRequirements {
-    
-    //already rated this version
+- (BOOL)checkRequirements {
+
     if(self.ratedThisVersion || self.declinedThisVersion) {
         return NO;
     }
@@ -121,12 +120,12 @@ static NSString * const RateManagerISOAlpha2CodeUSA = @"US";
         return NO;
     } else if([self.promptsNumber intValue] == 0){
         NSTimeInterval time = [[NSDate date] timeIntervalSinceDate: self.firstOpenDate];
-        if((time>2.0*60.0*60.0*24.0) && ([self.numberOfRuns intValue] >  2)){
+        if((time>2.0*60.0*60.0*24.0)&&([self.numberOfRuns intValue] >  2)){
             return YES;
         }
     } else if([self.promptsNumber intValue] == 1){
         NSTimeInterval time = [[NSDate date] timeIntervalSinceDate: self.lastPromptDate];
-        if((time>2.0*60.0*60.0*24.0) && ([self.numberOfRuns intValue] > [self.lastPromptRunNumber intValue] + 2)){
+        if((time>60.0*60.0*24.0)&&([self.numberOfRuns intValue] > [self.lastPromptRunNumber intValue] + 1)){
             return YES;
         }
     }
@@ -134,7 +133,8 @@ static NSString * const RateManagerISOAlpha2CodeUSA = @"US";
     return NO;
 }
 
-- (NSString *)applicationVersion {
+- (NSString*)applicationVersion
+{
     NSString *applicationVersion = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
     if ([applicationVersion length] == 0) {
         applicationVersion = [[NSBundle mainBundle] objectForInfoDictionaryKey:(NSString *)kCFBundleVersionKey];
@@ -143,8 +143,12 @@ static NSString * const RateManagerISOAlpha2CodeUSA = @"US";
 }
 
 - (NSString*)userDefaultsKey {
-    
-    return [NSString stringWithFormat:@"RateManagerInfo_%@", [self applicationVersion]];
+    NSArray *versionComponents = [[self applicationVersion] componentsSeparatedByString: @"."];
+    NSMutableArray *newVersionComponents = [NSMutableArray arrayWithArray:versionComponents];
+    [newVersionComponents removeLastObject];
+    NSString* key = [newVersionComponents componentsJoinedByString:@"."];
+   
+    return [NSString stringWithFormat:@"RateManagerInfo_%@", key];
 }
 
 - (id)versionParamForKey:(NSString*)key {
@@ -248,37 +252,34 @@ static NSString * const RateManagerISOAlpha2CodeUSA = @"US";
     
     [self setVersionParam:numberOfRuns forKey:RateManagerNumberOfRunsKey];
 }
-
-- (void)promptInternalRatingWithMessage:(NSString *)message {
+- (void)promptInternalRating{
     
     self.lastPromptRunNumber = [self numberOfRuns];
     self.lastPromptDate = [NSDate date];
     self.promptsNumber = @([self.promptsNumber intValue] + 1);
     
+    
     UIActionSheet *actionSheet = [[UIActionSheet alloc] initWithTitle:@"How's the app for you?"
                                                              delegate:self
                                                     cancelButtonTitle:@"Cancel"
                                                destructiveButtonTitle:nil
-                                                    otherButtonTitles:@"Great",@"Not Great", nil];
+                                                    otherButtonTitles:@"Great", @"Not Great",nil];
     [actionSheet showInView:self.viewToShowPrompt];
+    
 }
 
-- (void)internalRatedWithValue:(int)value {
+- (void)internalRatedWithValue:(PSRating)rating fromAlert:(UIView *)alert{
     
-    self.ratedThisVersion = YES;
-
-    if(value >= 1) {
-        
-        if(_rateCompletion) {
-            _rateCompletion(PSRateCompletionTypeLiked);
-        }
+    
+    if(rating == PSGreate) {
         
         UIAlertView *alertView=[[UIAlertView alloc]initWithTitle:@"" message:NSLocalizedString(@"Would you like to leave a review?", nil) delegate:self cancelButtonTitle:@"No" otherButtonTitles:@"Yes", nil];
         [alertView setTag:0];
         [alertView show];
         
         
-    } else {
+    } else if(rating == PSNotGreate) {
+        self.ratedThisVersion = YES;
         if(_rateCompletion) {
             _rateCompletion(PSRateCompletionTypeDisliked);
         }
@@ -287,7 +288,7 @@ static NSString * const RateManagerISOAlpha2CodeUSA = @"US";
 }
 
 
-- (NSURL *)ratingsURL
+- (NSURL*)ratingsURL
 {
     return [NSURL URLWithString:[NSString stringWithFormat:([[UIDevice currentDevice].systemVersion floatValue] >= 7.0f)? RateManageriOS7AppStoreURLFormat: RateManageriOSAppStoreURLFormat, self.appStoreID]];
 }
@@ -297,9 +298,6 @@ static NSString * const RateManagerISOAlpha2CodeUSA = @"US";
     [[UIApplication sharedApplication] openURL:self.ratingsURL];
 }
 
-- (BOOL)isUpdate{
-    return NO;
-}
 
 #pragma mark - RateManagerFeedbackControllerDelegate
 
@@ -313,17 +311,29 @@ static NSString * const RateManagerISOAlpha2CodeUSA = @"US";
 - (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex
 {
     if (buttonIndex == 0) {
-        [self internalRatedWithValue:1];
+        [self internalRatedWithValue:PSGreate fromAlert:actionSheet];
     } else if (buttonIndex == 1) {
-        [self internalRatedWithValue:0];
+        [self internalRatedWithValue:PSNotGreate fromAlert:actionSheet];
+    } else if (buttonIndex == 2){
+        if(_rateCompletion) {
+            _rateCompletion(PSRateComplitionTypeDeclinedProposal);
+        }
     }
-
 }
 
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex
 {
     if(buttonIndex){
+        self.ratedThisVersion = YES;
+        if(_rateCompletion) {
+            _rateCompletion(PSRateCompletionTypeLiked);
+        }
         [self openRatingsPageInAppStore];
+    }
+    else{
+        if(_rateCompletion) {
+            _rateCompletion(PSRateComplitionTypeDeclinedProposal);
+        }
     }
 }
 @end
